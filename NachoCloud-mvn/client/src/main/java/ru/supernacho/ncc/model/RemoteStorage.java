@@ -5,12 +5,12 @@ import javafx.beans.property.*;
 public class RemoteStorage {
     private  StringProperty fileName;
     private  LongProperty fileSize;
-    private  LongProperty lastChangeDate;
+    private  StringProperty lastChangeDate;
 
-    public RemoteStorage(String fileName, long fileSize, long date){
+    public RemoteStorage(String fileName, long fileSize, String date){
         this.fileName = new SimpleStringProperty(fileName);
         this.fileSize = new SimpleLongProperty(fileSize);
-        this.lastChangeDate = new SimpleLongProperty(date);
+        this.lastChangeDate = new SimpleStringProperty(date);
     }
 
     public String getFileName() {
@@ -38,11 +38,11 @@ public class RemoteStorage {
     }
 
 
-    public LongProperty lastChangeDateProperty() {
+    public StringProperty lastChangeDateProperty() {
         return lastChangeDate;
     }
 
-    public void setLastChangeDate(long lastChangeDate) {
+    public void setLastChangeDate(String lastChangeDate) {
         this.lastChangeDate.set(lastChangeDate);
     }
 }

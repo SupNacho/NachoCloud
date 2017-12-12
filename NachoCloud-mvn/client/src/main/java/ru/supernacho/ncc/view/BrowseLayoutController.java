@@ -27,7 +27,7 @@ public class BrowseLayoutController {
     private TableColumn<RemoteStorage, Long> fileSizeColumn;
 
     @FXML
-    private TableColumn<RemoteStorage, Long> fileDateColumn;
+    private TableColumn<RemoteStorage, String> fileDateColumn;
 
     @FXML
     private Button buttonAdd;
@@ -48,7 +48,7 @@ public class BrowseLayoutController {
     private void initialize() {
         fileNameColumn.setCellValueFactory(cellData -> cellData.getValue().fileNameProperty());
         fileSizeColumn.setCellValueFactory(cellData -> cellData.getValue().fileSizeProperty().asObject());
-        fileDateColumn.setCellValueFactory(cellData -> cellData.getValue().lastChangeDateProperty().asObject());
+        fileDateColumn.setCellValueFactory(cellData -> cellData.getValue().lastChangeDateProperty());
         buttonDel.setDisable(true);
         buttonDownLoad.setDisable(true);
         remoteStorageTable.setOnMouseClicked(new EventHandler<MouseEvent>() {
@@ -77,7 +77,7 @@ public class BrowseLayoutController {
             System.out.println("Добавляем файл: " + file.getName() + " at path " + file.getCanonicalPath());
             FileProcessor fileProcessor = clientMain.getFileProcessor();
             FileModel fileModel = fileProcessor.uploadFile(file);
-            clientMain.sendRequest(fileModel);
+            if (!clientMain.checkFileOverwrite(fileModel)) clientMain.sendRequest(fileModel);
         }
 
     }

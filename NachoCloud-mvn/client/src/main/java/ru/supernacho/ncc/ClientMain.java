@@ -5,6 +5,7 @@ import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.EventHandler;
+import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
 import javafx.scene.input.DragEvent;
@@ -14,6 +15,7 @@ import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.BorderPane;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
+import ru.supernacho.ncc.view.*;
 import ru.supernacho.nclib.FileModel;
 import ru.supernacho.nclib.FileProcessor;
 import ru.supernacho.nclib.MessageHeaders;
@@ -21,15 +23,14 @@ import ru.supernacho.nclib.User;
 import ru.supernacho.ncnet.SocketThread;
 import ru.supernacho.ncnet.SocketThreadListener;
 import ru.supernacho.ncc.model.RemoteStorage;
-import ru.supernacho.ncc.view.BrowseLayoutController;
-import ru.supernacho.ncc.view.LoginLayoutController;
-import ru.supernacho.ncc.view.RegistrationDialogController;
-import ru.supernacho.ncc.view.RootLayoutController;
 
 import java.io.File;
 import java.io.IOException;
 import java.net.Socket;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.List;
 
 public class ClientMain extends Application implements SocketThreadListener {
@@ -47,7 +48,7 @@ public class ClientMain extends Application implements SocketThreadListener {
     private StringBuilder errMessages = new StringBuilder();
     private boolean isRegistration;
     private FileProcessor fileProcessor = new FileProcessor();
-
+    private DateFormat timeStamp = new SimpleDateFormat("dd.MM.yyyy HH:mm:ss");
     private ObservableList<RemoteStorage> remoteStorage = FXCollections.observableArrayList();
     private String saveFileLocation;
 
@@ -58,7 +59,10 @@ public class ClientMain extends Application implements SocketThreadListener {
     public void start(Stage primaryStage) throws Exception {
         this.primaryStage = primaryStage;
         this.primaryStage.setTitle("NachoCloud");
-
+        primaryStage.setOnCloseRequest(e -> {
+            disconnect();
+            Platform.exit();
+        });
         initRootLayout();
 
         showLoginPage(null);
@@ -126,8 +130,10 @@ public class ClientMain extends Application implements SocketThreadListener {
                         succes = true;
                         for (File file: dragboard.getFiles()){
                             FileModel fileModel = fileProcessor.uploadFile(file);
-                            sendRequest(fileModel);
-                            System.out.println("File: " + file.getName() + " File size: " + file.length() + "File path: " + file.getAbsolutePath());
+                            if (!checkFileOverwrite(fileModel)) {
+                                sendRequest(fileModel);
+                                System.out.println("File: " + file.getName() + " File size: " + file.length() + "File path: " + file.getAbsolutePath());
+                            }
                         }
                     }
                     event.setDropCompleted(succes);
@@ -140,6 +146,45 @@ public class ClientMain extends Application implements SocketThreadListener {
         } catch (IOException e) {
             e.printStackTrace();
         }
+    }
+
+    public boolean checkFileOverwrite(FileModel fileModel){
+        for (File file : fileList) {
+            if (fileModel.getName().equals(file.getName())){
+                String newName = showOverwriteDialog(fileModel.getName());
+                if (newName.equals("drop")) return true;
+                fileModel.setFile(new File(newName));
+                sendRequest(fileModel);
+                System.out.println("File: " + file.getName() + " File size: " + file.length() + "File path: " + file.getAbsolutePath());
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public String showOverwriteDialog(String fileName){
+        try{
+            FXMLLoader loader = new FXMLLoader();
+            loader.setLocation(ClientMain.class.getResource("/overWriteLayout.fxml"));
+            AnchorPane page = loader.load();
+
+            Stage dialogStage = new Stage();
+            dialogStage.setTitle("File " + fileName + " exists on server...");
+            dialogStage.initModality(Modality.WINDOW_MODAL);
+            dialogStage.initOwner(primaryStage);
+            Scene scene = new Scene(page);
+            dialogStage.setScene(scene);
+
+            OverWriteViewController controller = loader.getController();
+            controller.setDialogStage(dialogStage);
+            controller.setClientMain(this);
+            controller.setOldFileName(fileName);
+            dialogStage.showAndWait();
+            return controller.getNewFileName();
+        } catch (IOException e){
+            e.printStackTrace();
+        }
+        return fileName;
     }
 
     public boolean showRegisterDialog() {
@@ -207,7 +252,7 @@ public class ClientMain extends Application implements SocketThreadListener {
         }
     }
 
-    public void disconect() {
+    public void disconnect() {
         socketThread.close();
     }
 
@@ -276,7 +321,7 @@ public class ClientMain extends Application implements SocketThreadListener {
                     }
                     System.out.println("Files qantity: " + fileList.size());
                     for (File file : fileList) {
-                        remoteStorage.add(new RemoteStorage(file.getName(), file.length(), file.lastModified()));
+                        remoteStorage.add(new RemoteStorage(file.getName(), file.length(), timeStamp.format(new Date(file.lastModified()))));
                     }
                 }
                 if (objectData instanceof User){
@@ -287,7 +332,7 @@ public class ClientMain extends Application implements SocketThreadListener {
                     }
                     System.out.println("Files qaty: " + user.getFileList().size());
                     for (File file : user.getFileList()) {
-                        remoteStorage.add(new RemoteStorage(file.getName(), file.length(), file.lastModified()));
+                        remoteStorage.add(new RemoteStorage(file.getName(), file.length(), timeStamp.format(new Date(file.lastModified()))));
                     }
                 }
 
@@ -304,12 +349,10 @@ public class ClientMain extends Application implements SocketThreadListener {
                             int msgHeaderCut = MessageHeaders.FILE_LIST.length() + MessageHeaders.DELIMITER.length();
                             String files[] = value.substring(msgHeaderCut).split(MessageHeaders.DELIMITER);
                             Arrays.sort(files);
-//                            for (String file : files) {
-//                                remoteStorage.add(new RemoteStorage(file, 0L, LocalDate.now()));
-//                            }
                             break;
                         case MessageHeaders.AUTH_ACCEPT:
                             System.out.println(" - [ Успешная авторизация ] -> " + tokens[1] + "\n");
+
                             showBrowsePage();
                             sendRequest(MessageHeaders.GET_USER_DATA);
                             break;

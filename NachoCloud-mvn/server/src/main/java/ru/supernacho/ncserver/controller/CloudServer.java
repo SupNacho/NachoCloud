@@ -195,10 +195,6 @@ public class CloudServer implements ServerSocketThreadListener, SocketThreadList
         if (objectData instanceof String) {
             String msg = objectData.toString();
             String tokens[] = msg.split(MessageHeaders.DELIMITER);
-//        if((tokens.length != 3 || !tokens[0].equals(MessageHeaders.AUTH_REQUEST)) || !tokens[0].equals(MessageHeaders.REGISTER)){
-//            newClient.messageFormatError(msg);
-//            return;
-//        }
             if (tokens[0].equals(MessageHeaders.AUTH_REQUEST)) {
                 String login = tokens[1];
                 String password = tokens[2];

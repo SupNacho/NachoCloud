@@ -12,6 +12,7 @@ public class RegistrationDialogController {
     private ClientMain clientMain;
     private Stage dialogStage;
     private boolean okClicked = false;
+    private boolean registrationComplete = false;
 
     @FXML
     private TextField textFieldNewLogin;
@@ -58,8 +59,6 @@ public class RegistrationDialogController {
             labelRegisterStatus.setText("Registration data send to server, waiting response...");
             okClicked = true;
             clientMain.registration(textFieldNewLogin.getText(), passFieldNewPassword.getText(), textFiledName.getText(), true);
-//            clientMain.showBrowsePage();
-//            clientMain.sendRequest(MessageHeaders.GET_USER_DATA);
             dialogStage.close();
         }
 
@@ -90,5 +89,9 @@ public class RegistrationDialogController {
              labelRegisterStatus.setText(errorMesage.toString());
              return false;
          }
+    }
+
+    public void setRegistrationComplete(boolean registrationComplete) {
+        this.registrationComplete = registrationComplete;
     }
 }
