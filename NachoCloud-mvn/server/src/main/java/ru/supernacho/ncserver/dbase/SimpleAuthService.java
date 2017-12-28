@@ -29,6 +29,6 @@ public class SimpleAuthService implements AuthService {
 
     @Override
     public void stop() {
-        dataBase.disconect();
+        dataBase.disconnect();
     }
 }

@@ -45,7 +45,7 @@ public class OverWriteViewController {
 
     public void setOldFileName(String oldFileName) {
         this.oldFileName = oldFileName;
-        labelFileExists.setText(new String().format("File %s already exists on server", oldFileName));
+        labelFileExists.setText(String.format("File %s already exists on server", oldFileName));
     }
 
     public boolean isOverWrite(){

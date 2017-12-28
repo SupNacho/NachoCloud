@@ -4,11 +4,8 @@ import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
-import javafx.event.EventHandler;
-import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
-import javafx.scene.input.DragEvent;
 import javafx.scene.input.Dragboard;
 import javafx.scene.input.TransferMode;
 import javafx.scene.layout.AnchorPane;
@@ -56,7 +53,7 @@ public class ClientMain extends Application implements SocketThreadListener {
     }
 
     @Override
-    public void start(Stage primaryStage) throws Exception {
+    public void start(Stage primaryStage){
         this.primaryStage = primaryStage;
         this.primaryStage.setTitle("NachoCloud");
         primaryStage.setOnCloseRequest(e -> {
@@ -68,12 +65,12 @@ public class ClientMain extends Application implements SocketThreadListener {
         showLoginPage(null);
     }
 
-    public void initRootLayout() {
+    private void initRootLayout() {
         try {
 
             FXMLLoader loader = new FXMLLoader();
             loader.setLocation(ClientMain.class.getResource("/rootLayout.fxml"));
-            rootLayout = (BorderPane) loader.load();
+            rootLayout = loader.load();
 
             Scene scene = new Scene(rootLayout);
             primaryStage.setScene(scene);
@@ -86,11 +83,11 @@ public class ClientMain extends Application implements SocketThreadListener {
         }
     }
 
-    public void showLoginPage(String message) {
+    private void showLoginPage(String message) {
         try {
             FXMLLoader loader = new FXMLLoader();
             loader.setLocation(ClientMain.class.getResource("/loginPage.fxml"));
-            AnchorPane loginPage = (AnchorPane) loader.load();
+            AnchorPane loginPage =  loader.load();
 
             rootLayout.setCenter(loginPage);
 
@@ -103,42 +100,36 @@ public class ClientMain extends Application implements SocketThreadListener {
         }
     }
 
-    public void showBrowsePage() {
+    private void showBrowsePage() {
         try {
             FXMLLoader loader = new FXMLLoader();
             loader.setLocation(ClientMain.class.getResource("/browseLayout.fxml"));
-            AnchorPane browsePage = (AnchorPane) loader.load();
+            AnchorPane browsePage = loader.load();
 
             rootLayout.setCenter(browsePage);
-            rootLayout.setOnDragOver(new EventHandler<DragEvent>() {
-                @Override
-                public void handle(DragEvent event) {
-                    Dragboard dragboard = event.getDragboard();
-                    if (dragboard.hasFiles()){
-                        event.acceptTransferModes(TransferMode.COPY);
-                    } else {
-                        event.consume();
-                    }
-                }
-            });
-            rootLayout.setOnDragDropped(new EventHandler<DragEvent>() {
-                @Override
-                public void handle(DragEvent event) {
-                    Dragboard dragboard = event.getDragboard();
-                    boolean succes = false;
-                    if (dragboard.hasFiles()){
-                        succes = true;
-                        for (File file: dragboard.getFiles()){
-                            FileModel fileModel = fileProcessor.uploadFile(file);
-                            if (!checkFileOverwrite(fileModel)) {
-                                sendRequest(fileModel);
-                                System.out.println("File: " + file.getName() + " File size: " + file.length() + "File path: " + file.getAbsolutePath());
-                            }
-                        }
-                    }
-                    event.setDropCompleted(succes);
+            rootLayout.setOnDragOver(event -> {
+                Dragboard dragboard = event.getDragboard();
+                if (dragboard.hasFiles()){
+                    event.acceptTransferModes(TransferMode.COPY);
+                } else {
                     event.consume();
                 }
+            });
+            rootLayout.setOnDragDropped(event -> {
+                Dragboard dragboard = event.getDragboard();
+                boolean succes = false;
+                if (dragboard.hasFiles()){
+                    succes = true;
+                    for (File file: dragboard.getFiles()){
+                        FileModel fileModel = fileProcessor.uploadFile(file);
+                        if (checkFileOverwrite(fileModel)) {
+                            sendRequest(fileModel);
+                            System.out.println("File: " + file.getName() + " File size: " + file.length() + "File path: " + file.getAbsolutePath());
+                        }
+                    }
+                }
+                event.setDropCompleted(succes);
+                event.consume();
             });
             BrowseLayoutController controller = loader.getController();
             controller.setClientMain(this);
@@ -152,17 +143,17 @@ public class ClientMain extends Application implements SocketThreadListener {
         for (File file : fileList) {
             if (fileModel.getName().equals(file.getName())){
                 String newName = showOverwriteDialog(fileModel.getName());
-                if (newName.equals("drop")) return true;
+                if (newName.equals("drop")) return false;
                 fileModel.setFile(new File(newName));
                 sendRequest(fileModel);
                 System.out.println("File: " + file.getName() + " File size: " + file.length() + "File path: " + file.getAbsolutePath());
-                return true;
+                return false;
             }
         }
-        return false;
+        return true;
     }
 
-    public String showOverwriteDialog(String fileName){
+    private String showOverwriteDialog(String fileName){
         try{
             FXMLLoader loader = new FXMLLoader();
             loader.setLocation(ClientMain.class.getResource("/overWriteLayout.fxml"));
@@ -187,7 +178,7 @@ public class ClientMain extends Application implements SocketThreadListener {
         return fileName;
     }
 
-    public boolean showRegisterDialog() {
+    public void showRegisterDialog() {
         try {
             FXMLLoader loader = new FXMLLoader();
             loader.setLocation(ClientMain.class.getResource("/RegistrationDialog.fxml"));
@@ -204,11 +195,9 @@ public class ClientMain extends Application implements SocketThreadListener {
             controller.setDialogStage(dialogStage);
             controller.setClientMain(this);
             dialogStage.showAndWait();
-            return controller.isOkClicked();
 
         } catch (IOException e) {
             e.printStackTrace();
-            return false;
         }
     }
 
@@ -252,46 +241,31 @@ public class ClientMain extends Application implements SocketThreadListener {
         }
     }
 
-    public void disconnect() {
-        socketThread.close();
+    private void disconnect() {
+        if (socketThread != null) socketThread.close();
     }
 
     @Override
     public void onStartSocketThread(SocketThread socketThread) {
-        Platform.runLater(new Runnable() {
-            @Override
-            public void run() {
-                System.out.println("Socket Start");
-            }
-        });
     }
 
     @Override
     public void onStopSocketThread(SocketThread socketThread) {
-        Platform.runLater(new Runnable() {
-            @Override
-            public void run() {
-                System.out.println("Connection closed.");
-                errMessages.append("Connection closed");
-                showLoginPage(errMessages.toString());
-                errMessages.setLength(0);
-            }
+        Platform.runLater(() -> {
+            errMessages.append("Connection closed");
+            showLoginPage(errMessages.toString());
+            errMessages.setLength(0);
         });
     }
 
     public void onReadySocketThread(SocketThread socketThread, Socket socket) {
-        Platform.runLater(new Runnable() {
-            @Override
-            public void run() {
-                if (isRegistration) {
-                    System.out.println("Start REGISTRATION process");
-                    socketThread.sendMsg(MessageHeaders.getRegistrationRequest(newLogin, newPassword, name));
-                    isRegistration = false;
-                } else {
-                    System.out.println("Start AUTH process");
-                    String authRequest = MessageHeaders.getAuthRequest(login, password);
-                    socketThread.sendMsg(authRequest);
-                }
+        Platform.runLater(() -> {
+            if (isRegistration) {
+                socketThread.sendMsg(MessageHeaders.getRegistrationRequest(newLogin, newPassword, name));
+                isRegistration = false;
+            } else {
+                String authRequest = MessageHeaders.getAuthRequest(login, password);
+                socketThread.sendMsg(authRequest);
             }
         });
     }
@@ -303,73 +277,70 @@ public class ClientMain extends Application implements SocketThreadListener {
 
     @Override
     public void onReceiveData(SocketThread socketThread, Socket socket, Object objectData) {
-        Platform.runLater(new Runnable() {
-            @Override
-            public void run() {
-                if (objectData instanceof FileModel){
-                    FileModel fileModel = (FileModel) objectData;
-                    fileProcessor.saveFile(saveFileLocation, fileModel);
-                    System.out.println("Received file " + fileModel.getName());
-                }
+        Platform.runLater(() -> {
+            if (objectData instanceof FileModel){
+                FileModel fileModel = (FileModel) objectData;
+                fileProcessor.saveFile(saveFileLocation, fileModel);
+                System.out.println("Received file " + fileModel.getName());
+            }
 
-                if (objectData instanceof List){
-                    remoteStorage.clear();
-                    fileList = (List<File>) objectData;
-                    user.setFileList(fileList);
-                    for (File file : fileList) {
-                        System.out.println("File: " + file.getName());
-                    }
-                    System.out.println("Files qantity: " + fileList.size());
-                    for (File file : fileList) {
-                        remoteStorage.add(new RemoteStorage(file.getName(), file.length(), timeStamp.format(new Date(file.lastModified()))));
-                    }
+            if (objectData instanceof List){
+                remoteStorage.clear();
+                fileList = (List<File>) objectData;
+                user.setFileList(fileList);
+                for (File file : fileList) {
+                    System.out.println("File: " + file.getName());
                 }
-                if (objectData instanceof User){
-                    user = (User) objectData;
-                    System.out.println("User data: " + user.toString());
-                    for (File file : user.getFileList()) {
-                        System.out.println("File: " + file.getName());
-                    }
-                    System.out.println("Files qaty: " + user.getFileList().size());
-                    for (File file : user.getFileList()) {
-                        remoteStorage.add(new RemoteStorage(file.getName(), file.length(), timeStamp.format(new Date(file.lastModified()))));
-                    }
+                System.out.println("Files qantity: " + fileList.size());
+                for (File file : fileList) {
+                    remoteStorage.add(new RemoteStorage(file.getName(), file.length(), timeStamp.format(new Date(file.lastModified()))));
                 }
+            }
+            if (objectData instanceof User){
+                user = (User) objectData;
+                System.out.println("User data: " + user.toString());
+                for (File file : user.getFileList()) {
+                    System.out.println("File: " + file.getName());
+                }
+                System.out.println("Files qaty: " + user.getFileList().size());
+                for (File file : user.getFileList()) {
+                    remoteStorage.add(new RemoteStorage(file.getName(), file.length(), timeStamp.format(new Date(file.lastModified()))));
+                }
+            }
 
-                if (objectData instanceof String) {
-                    String value = objectData.toString();
-                    String tokens[] = value.split(MessageHeaders.DELIMITER);
-                    switch (tokens[0]) {
-                        case MessageHeaders.REGISTER_ERROR:
-                            String err = "Reg err: " + tokens[1];
-                            System.out.println(err);
-                            errMessages.append(err);
-                            break;
-                        case MessageHeaders.FILE_LIST:
-                            int msgHeaderCut = MessageHeaders.FILE_LIST.length() + MessageHeaders.DELIMITER.length();
-                            String files[] = value.substring(msgHeaderCut).split(MessageHeaders.DELIMITER);
-                            Arrays.sort(files);
-                            break;
-                        case MessageHeaders.AUTH_ACCEPT:
-                            System.out.println(" - [ Успешная авторизация ] -> " + tokens[1] + "\n");
-
-                            showBrowsePage();
-                            sendRequest(MessageHeaders.GET_USER_DATA);
-                            break;
-                        case MessageHeaders.AUTH_ERROR:
-                            String msg = "Ошибка авторизации ";
-                            System.out.println(msg);
-                            errMessages.append(msg);
-                            break;
-                        case MessageHeaders.MSG_FORMAT_ERROR:
-                            System.out.println("- [Ошибка формата сообщения] - > " + tokens[0] + tokens[1] + "\n");
-                            break;
-                        case MessageHeaders.RECONNECT:
-                            System.out.println(" - [Переподключение с другого устройства] \n");
-                            break;
-                        default:
-                            throw new RuntimeException("Неизвестный заголовок сообщения: " + value);
-                    }
+            if (objectData instanceof String) {
+                String value = objectData.toString();
+                String tokens[] = value.split(MessageHeaders.DELIMITER);
+                switch (tokens[0]) {
+                    case MessageHeaders.REGISTER_ERROR:
+                        String err = "Reg err: " + tokens[1];
+                        System.out.println(err);
+                        errMessages.append(err);
+                        break;
+                    case MessageHeaders.FILE_LIST:
+                        int msgHeaderCut = MessageHeaders.FILE_LIST.length() + MessageHeaders.DELIMITER.length();
+                        String files[] = value.substring(msgHeaderCut).split(MessageHeaders.DELIMITER);
+                        Arrays.sort(files);
+                        break;
+                    case MessageHeaders.AUTH_ACCEPT:
+                        showBrowsePage();
+                        sendRequest(MessageHeaders.GET_USER_DATA);
+                        break;
+                    case MessageHeaders.AUTH_ERROR:
+                        String msg = "Ошибка авторизации ";
+                        System.out.println(msg);
+                        errMessages.append(msg);
+                        break;
+                    case MessageHeaders.MSG_FORMAT_ERROR:
+                        String msg2 = "Ошибка формата сообщения - > " + tokens[0] + tokens[1] + "\n";
+                        errMessages.append(msg2);
+                        break;
+                    case MessageHeaders.RECONNECT:
+                        String msg3 = "Переподключение с другого устройства] \n";
+                        errMessages.append(msg3);
+                        break;
+                    default:
+                        throw new RuntimeException("Неизвестный заголовок сообщения: " + value);
                 }
             }
         });
@@ -377,12 +348,7 @@ public class ClientMain extends Application implements SocketThreadListener {
 
     @Override
     public void onExceptionSocketThread(SocketThread socketThread, Socket socket, Exception e) {
-        Platform.runLater(new Runnable() {
-            @Override
-            public void run() {
-                e.printStackTrace();
-            }
-        });
+        Platform.runLater(e::printStackTrace);
     }
 
     public static void main(String[] args) {

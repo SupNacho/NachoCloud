@@ -26,7 +26,6 @@ public class CloudServer implements ServerSocketThreadListener, SocketThreadList
     private ServerSocketThread serverSocketThread;
     private final Vector<SocketThread> clients = new Vector<>();
     private DataBase dataBase;
-    private User user;
     private ServerFilesProcessor serverFilesProcessor;
     private FileProcessor fileProcessor;
     private ConcurrentHashMap<CloudSocketThread, User> userMap;
@@ -114,7 +113,6 @@ public class CloudServer implements ServerSocketThreadListener, SocketThreadList
         putLog("stopped.");
         userMap.remove(socketThread);
         clients.remove(socketThread);
-        CloudSocketThread client = (CloudSocketThread) socketThread;
     }
 
     private CloudSocketThread getClientByNickname(String nickname) {
@@ -145,15 +143,8 @@ public class CloudServer implements ServerSocketThreadListener, SocketThreadList
         }
     }
 
-    private void sendToAllAuthorizedClients(String msg) {
-        for (int i = 0; i < clients.size(); i++) {
-            CloudSocketThread client = (CloudSocketThread) clients.get(i);
-            if(client.isAuthorized()) client.sendMsg(msg);
-        }
-    }
-
     private void handleAuthorizeClient(CloudSocketThread client, Object objectData) {
-        user = userMap.get(client);
+        User user = userMap.get(client);
         serverFilesProcessor.setUser(user);
         if (objectData instanceof FileModel){
             FileModel fileModel = (FileModel) objectData;

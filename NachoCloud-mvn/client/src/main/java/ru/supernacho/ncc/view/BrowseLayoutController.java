@@ -1,9 +1,7 @@
 package ru.supernacho.ncc.view;
 
-import javafx.event.EventHandler;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
-import javafx.scene.input.MouseEvent;
 import javafx.stage.DirectoryChooser;
 import javafx.stage.FileChooser;
 import ru.supernacho.ncc.ClientMain;
@@ -51,14 +49,11 @@ public class BrowseLayoutController {
         fileDateColumn.setCellValueFactory(cellData -> cellData.getValue().lastChangeDateProperty());
         buttonDel.setDisable(true);
         buttonDownLoad.setDisable(true);
-        remoteStorageTable.setOnMouseClicked(new EventHandler<MouseEvent>() {
-            @Override
-            public void handle(MouseEvent event) {
-                if (event.getClickCount() > 1){
-                    handleDownloadFile();
-                } else {
-                    handleSelectFiles();
-                }
+        remoteStorageTable.setOnMouseClicked(event -> {
+            if (event.getClickCount() > 1){
+                handleDownloadFile();
+            } else {
+                handleSelectFiles();
             }
         });
     }
@@ -77,7 +72,7 @@ public class BrowseLayoutController {
             System.out.println("Добавляем файл: " + file.getName() + " at path " + file.getCanonicalPath());
             FileProcessor fileProcessor = clientMain.getFileProcessor();
             FileModel fileModel = fileProcessor.uploadFile(file);
-            if (!clientMain.checkFileOverwrite(fileModel)) clientMain.sendRequest(fileModel);
+            if (clientMain.checkFileOverwrite(fileModel)) clientMain.sendRequest(fileModel);
         }
 
     }

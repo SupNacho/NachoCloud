@@ -25,8 +25,6 @@ public class DataBase {
         } catch (ClassNotFoundException | SQLException e) {
             e.printStackTrace();
         }
-        File file = new File("UsersDB.db");
-//        if (!file.exists()) {
             statement.execute("CREATE TABLE IF NOT EXISTS users (\n" +
                     "    id           INTEGER PRIMARY KEY AUTOINCREMENT\n" +
                     "                         UNIQUE\n" +
@@ -37,7 +35,6 @@ public class DataBase {
                     "    name                 NOT NULL,\n" +
                     "    is_loggined  BOOLEAN NOT NULL\n" +
                     ");");
-//        }
     }
 
     public boolean login(String login, String password) throws SQLException {
@@ -45,10 +42,7 @@ public class DataBase {
         preparedStatement.setString(1, login);
         preparedStatement.setString(2, password);
         resultSet = preparedStatement.executeQuery();
-        if (resultSet.isClosed()) {
-            return false;
-        }
-        return true;
+        return !resultSet.isClosed();
     }
 
     public String getUserRepository() {
@@ -94,7 +88,7 @@ public class DataBase {
 
     public boolean checkAviablity(String login) {
         try {
-            System.out.println("Check aviablity!");
+            System.out.println("Check aviability!");
             preparedStatement = connection.prepareStatement("SELECT login\n" +
                     "  FROM users\n" +
                     " WHERE login = ?;");
@@ -122,7 +116,7 @@ public class DataBase {
         return null;
     }
 
-    public void disconect() {
+    public void disconnect() {
         try {
             connection.close();
         } catch (SQLException e) {

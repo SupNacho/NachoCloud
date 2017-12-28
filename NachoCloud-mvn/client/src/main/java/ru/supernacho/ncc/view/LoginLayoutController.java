@@ -31,10 +31,7 @@ public class LoginLayoutController {
 
     @FXML
     private void handleSignIn(){
-        System.out.println(String.format("Login: %s | pass: %s", loginField.getText(), passwordField.getText()));
-        //todo запрос на сервер для установки соеденения если ОК то запуск БроузВиев
         clientMain.connect(loginField.getText(), passwordField.getText());
-//        clientMain.showBrowsePage();
     }
 
     @FXML

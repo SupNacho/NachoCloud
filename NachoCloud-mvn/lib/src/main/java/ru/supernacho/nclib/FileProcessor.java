@@ -5,7 +5,6 @@ import java.io.*;
 public class FileProcessor {
     private FileInputStream fileInputStream;
     private FileOutputStream fileOutputStream;
-    private byte[] fileContent;
 
     public FileProcessor() {
     }
@@ -13,14 +12,12 @@ public class FileProcessor {
     public FileModel uploadFile(File path){
         FileModel fileModel = new FileModel();
         try {
-            fileContent = new byte[(int) path.length()];
+            byte[] fileContent = new byte[(int) path.length()];
             fileInputStream = new FileInputStream(path);
             fileInputStream.read(fileContent);
             fileModel.setFile(path);
             fileModel.setFileContent(fileContent);
             return fileModel;
-        } catch (FileNotFoundException e) {
-            e.printStackTrace();
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -41,8 +38,6 @@ public class FileProcessor {
             fileOutputStream = new FileOutputStream(new File(userStorage, incomingFile.getFile().getName()));
             fileOutputStream.write(incomingFile.getFileContent());
             fileOutputStream.flush();
-        } catch (FileNotFoundException e) {
-            e.printStackTrace();
         } catch (IOException e) {
             e.printStackTrace();
         } finally {

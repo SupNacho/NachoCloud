@@ -8,8 +8,6 @@ public class SocketThread extends Thread {
     private final SocketThreadListener eventListener;
     private final Socket socket;
     private ObjectOutputStream outObjStream;
-    private InputStream sis;
-    private OutputStream sos;
 
     public SocketThread(SocketThreadListener eventListener, String name, Socket socket) {
         super(name);
@@ -22,18 +20,13 @@ public class SocketThread extends Thread {
     @Override
     public void run() {
         eventListener.onStartSocketThread(this);
-        System.out.println("1 - ST run");
         try {
-            sis = socket.getInputStream();
-            sos = socket.getOutputStream();
-            System.out.println("2 - Socket IOstreams");
+            InputStream sis = socket.getInputStream();
+            OutputStream sos = socket.getOutputStream();
             outObjStream = new ObjectOutputStream(sos);
             ObjectInputStream in = new ObjectInputStream(sis);
-            System.out.println("3 - oiStream set");
             eventListener.onReadySocketThread(this, socket);
-            System.out.println("5 - eList on ready set");
             while(!isInterrupted()) {
-                System.out.println("6 - in.READ");
                 Object dataMsg = in.readObject();
                 System.out.println(dataMsg.toString());
                 eventListener.onReceiveData(this, socket, dataMsg);

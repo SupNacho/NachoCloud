@@ -14,7 +14,6 @@ public class RootLayoutController {
 
     @FXML
     private void handleExit(){
-        //todo Добавить код входя выхода
         System.exit(0);
     }
 

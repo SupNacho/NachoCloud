@@ -12,7 +12,6 @@ public class RegistrationDialogController {
     private ClientMain clientMain;
     private Stage dialogStage;
     private boolean okClicked = false;
-    private boolean registrationComplete = false;
 
     @FXML
     private TextField textFieldNewLogin;
@@ -92,6 +91,6 @@ public class RegistrationDialogController {
     }
 
     public void setRegistrationComplete(boolean registrationComplete) {
-        this.registrationComplete = registrationComplete;
+        boolean registrationComplete1 = registrationComplete;
     }
 }
