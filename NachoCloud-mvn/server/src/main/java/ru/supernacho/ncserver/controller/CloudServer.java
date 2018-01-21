@@ -8,9 +8,8 @@ import ru.supernacho.ncnet.ServerSocketThread;
 import ru.supernacho.ncnet.ServerSocketThreadListener;
 import ru.supernacho.ncnet.SocketThread;
 import ru.supernacho.ncnet.SocketThreadListener;
-import ru.supernacho.ncserver.dbase.AuthService;
+import ru.supernacho.ncserver.AuthService.AuthService;
 import ru.supernacho.ncserver.dbase.DataBase;
-import ru.supernacho.ncserver.model.ServerFilesProcessor;
 
 import java.net.ServerSocket;
 import java.net.Socket;
@@ -198,7 +197,7 @@ public class CloudServer implements ServerSocketThreadListener, SocketThreadList
                 CloudSocketThread oldClient = getClientByNickname(nickname);
                 newClient.authAccept(nickname);
                 if (oldClient == null) {
-                    System.out.println(("Server " + newClient.getLogin() + " connected. Auth Block"));
+                    System.out.println(("Server " + newClient.getLogin() + " connected."));
                     userMap.put(newClient, new User(login, dataBase.getName(), dataBase.getUserRepository()));
                 } else {
                     oldClient.reconnected();

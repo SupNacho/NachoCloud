@@ -3,7 +3,7 @@ package ru.supernacho.ncserver;
 import ru.supernacho.ncserver.controller.CloudServer;
 import ru.supernacho.ncserver.controller.CloudServerListener;
 import ru.supernacho.ncserver.dbase.DataBase;
-import ru.supernacho.ncserver.dbase.SimpleAuthService;
+import ru.supernacho.ncserver.AuthService.SimpleAuthService;
 
 import java.util.Scanner;
 import java.util.concurrent.ExecutorService;
@@ -12,6 +12,7 @@ import java.util.concurrent.Executors;
 public class ServerMain implements CloudServerListener, Runnable {
 
     private final DataBase dataBase = new DataBase();
+    private static final int PORT = 8189;
     private static final String START = "start";
     private static final String STOP = "stop";
     private static final String QUIT = "quit";
@@ -32,7 +33,7 @@ public class ServerMain implements CloudServerListener, Runnable {
             String command = scanner.next();
             switch (command) {
                 case START:
-                    cloudServer.startListening(8189);
+                    cloudServer.startListening(PORT);
                     break;
                 case STOP:
                     cloudServer.stopListening();

@@ -12,7 +12,7 @@ import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.BorderPane;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
-import ru.supernacho.ncc.view.*;
+import ru.supernacho.ncc.viewController.*;
 import ru.supernacho.nclib.FileModel;
 import ru.supernacho.nclib.FileProcessor;
 import ru.supernacho.nclib.MessageHeaders;
@@ -32,6 +32,8 @@ import java.util.List;
 
 public class ClientMain extends Application implements SocketThreadListener {
 
+    private static final int PORT = 8189;
+    private static final String HOST = "localhost";
     private Stage primaryStage;
     private BorderPane rootLayout;
     private SocketThread socketThread;
@@ -221,7 +223,7 @@ public class ClientMain extends Application implements SocketThreadListener {
         try {
             this.login = login;
             this.password = password;
-            Socket socket = new Socket("localhost", 8189);
+            Socket socket = new Socket(HOST, PORT);
             socketThread = new SocketThread(this, "socketThread", socket);
         } catch (IOException e) {
             e.printStackTrace();
@@ -234,7 +236,7 @@ public class ClientMain extends Application implements SocketThreadListener {
             this.newLogin = newLogin;
             this.newPassword = newPassword;
             this.name = name;
-            Socket socket = new Socket("localhost", 8189);
+            Socket socket = new Socket(HOST, PORT);
             socketThread = new SocketThread(this, "socketThread", socket);
         } catch (IOException e) {
             e.printStackTrace();

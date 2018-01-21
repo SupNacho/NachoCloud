@@ -1,8 +1,5 @@
 package ru.supernacho.nclib;
 
-import java.io.File;
-import java.time.LocalDate;
-
 public class MessageHeaders {
 
     public static final String DELIMITER =          ";";
