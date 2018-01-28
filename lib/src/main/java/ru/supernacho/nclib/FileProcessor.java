@@ -2,7 +2,7 @@ package ru.supernacho.nclib;
 
 import java.io.*;
 
-public class FileProcessor {
+public class FileProcessor implements ClientFileInterface {
     private FileInputStream fileInputStream;
     private FileOutputStream fileOutputStream;
 
