@@ -5,6 +5,7 @@ import javafx.scene.control.*;
 import javafx.stage.DirectoryChooser;
 import javafx.stage.FileChooser;
 import ru.supernacho.ncc.ClientMain;
+import ru.supernacho.nclib.ClientFileInterface;
 import ru.supernacho.nclib.FileModel;
 import ru.supernacho.nclib.FileProcessor;
 import ru.supernacho.nclib.MessageHeaders;
@@ -70,7 +71,7 @@ public class BrowseLayoutController {
         if (file != null && file.isFile()){
             file = new File(file.getPath());
             System.out.println("Добавляем файл: " + file.getName() + " at path " + file.getCanonicalPath());
-            FileProcessor fileProcessor = clientMain.getFileProcessor();
+            ClientFileInterface fileProcessor = clientMain.getFileProcessor();
             FileModel fileModel = fileProcessor.uploadFile(file);
             if (clientMain.checkFileOverwrite(fileModel)) clientMain.sendRequest(fileModel);
         }

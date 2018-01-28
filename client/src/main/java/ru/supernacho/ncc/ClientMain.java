@@ -13,10 +13,7 @@ import javafx.scene.layout.BorderPane;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
 import ru.supernacho.ncc.viewController.*;
-import ru.supernacho.nclib.FileModel;
-import ru.supernacho.nclib.FileProcessor;
-import ru.supernacho.nclib.MessageHeaders;
-import ru.supernacho.nclib.User;
+import ru.supernacho.nclib.*;
 import ru.supernacho.ncnet.SocketThread;
 import ru.supernacho.ncnet.SocketThreadListener;
 import ru.supernacho.ncc.model.RemoteStorage;
@@ -46,7 +43,7 @@ public class ClientMain extends Application implements SocketThreadListener {
     private List<File> fileList;
     private StringBuilder errMessages = new StringBuilder();
     private boolean isRegistration;
-    private FileProcessor fileProcessor = new FileProcessor();
+    private ClientFileInterface fileProcessor = new FileProcessor();
     private DateFormat timeStamp = new SimpleDateFormat("dd.MM.yyyy HH:mm:ss");
     private ObservableList<RemoteStorage> remoteStorage = FXCollections.observableArrayList();
     private String saveFileLocation;
@@ -141,7 +138,9 @@ public class ClientMain extends Application implements SocketThreadListener {
     }
 
     public boolean checkFileOverwrite(FileModel fileModel){
+        System.out.println("chkOwerwrite");
         for (File file : fileList) {
+            System.out.println("overwrite 2");
             if (fileModel.getName().equals(file.getName())){
                 String newName = showOverwriteDialog(fileModel.getName());
                 if (newName.equals("drop")) return false;
@@ -206,7 +205,7 @@ public class ClientMain extends Application implements SocketThreadListener {
         return remoteStorage;
     }
 
-    public FileProcessor getFileProcessor() {
+    public ClientFileInterface getFileProcessor() {
         return fileProcessor;
     }
 
@@ -299,14 +298,7 @@ public class ClientMain extends Application implements SocketThreadListener {
             }
             if (objectData instanceof User){
                 user = (User) objectData;
-                System.out.println("User data: " + user.toString());
-                for (File file : user.getFileList()) {
-                    System.out.println("File: " + file.getName());
-                }
-                System.out.println("Files qaty: " + user.getFileList().size());
-                for (File file : user.getFileList()) {
-                    remoteStorage.add(new RemoteStorage(file.getName(), file.length(), timeStamp.format(new Date(file.lastModified()))));
-                }
+                sendRequest(MessageHeaders.FILE_LIST);
             }
 
             if (objectData instanceof String) {

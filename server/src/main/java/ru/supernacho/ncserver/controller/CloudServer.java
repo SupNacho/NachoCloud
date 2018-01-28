@@ -1,9 +1,6 @@
 package ru.supernacho.ncserver.controller;
 
-import ru.supernacho.nclib.FileModel;
-import ru.supernacho.nclib.FileProcessor;
-import ru.supernacho.nclib.MessageHeaders;
-import ru.supernacho.nclib.User;
+import ru.supernacho.nclib.*;
 import ru.supernacho.ncnet.ServerSocketThread;
 import ru.supernacho.ncnet.ServerSocketThreadListener;
 import ru.supernacho.ncnet.SocketThread;
@@ -25,8 +22,8 @@ public class CloudServer implements ServerSocketThreadListener, SocketThreadList
     private ServerSocketThread serverSocketThread;
     private final Vector<SocketThread> clients = new Vector<>();
     private DataBase dataBase;
-    private ServerFilesProcessor serverFilesProcessor;
-    private FileProcessor fileProcessor;
+    private ServerFileInterface serverFilesProcessor;
+    private ClientFileInterface fileProcessor;
     private ConcurrentHashMap<CloudSocketThread, User> userMap;
 
     public CloudServer(CloudServerListener eventListener, AuthService authService, DataBase dataBase) {
@@ -34,8 +31,8 @@ public class CloudServer implements ServerSocketThreadListener, SocketThreadList
         this.authService = authService;
         this.dataBase = dataBase;
         this.userMap = new ConcurrentHashMap<>();
-        this.serverFilesProcessor = new ServerFilesProcessor();
         this.fileProcessor = new FileProcessor();
+        this.serverFilesProcessor = (ServerFileInterface) fileProcessor;
     }
 
     public void startListening(int port) {
