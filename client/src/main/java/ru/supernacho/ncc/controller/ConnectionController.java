@@ -25,12 +25,12 @@ public class ConnectionController implements SocketThreadListener{
     private StringBuilder errMessages = new StringBuilder();
     private boolean isRegistration;
     private ClientMain clientMain;
-    private ReceiveDataController receiveDataController;
+    private ReceivedDataController receiveDataController;
 
 
     public ConnectionController(ClientMain main) {
         this.clientMain = main;
-        this.receiveDataController = new ReceiveDataController(this, clientMain);
+        this.receiveDataController = new ReceivedDataController(this, clientMain);
     }
 
     public void connect(String login, String password) {

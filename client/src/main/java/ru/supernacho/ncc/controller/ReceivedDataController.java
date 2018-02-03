@@ -12,7 +12,7 @@ import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 
-public class ReceiveDataController {
+public class ReceivedDataController {
 
     private ClientFileInterface fileProcessor;
     private ClientMain clientMain;
@@ -22,7 +22,7 @@ public class ReceiveDataController {
     private DateFormat timeStamp = new SimpleDateFormat("dd.MM.yyyy HH:mm:ss");
     private StringBuilder errMessages = new StringBuilder();
 
-    ReceiveDataController(ConnectionController connection, ClientMain main) {
+    ReceivedDataController(ConnectionController connection, ClientMain main) {
         this.clientMain = main;
         this.connection = connection;
         this.remoteStorage = clientMain.getRemoteStorage();
