@@ -111,7 +111,7 @@ public class CloudServer implements ServerSocketThreadListener, SocketThreadList
         clients.remove(socketThread);
     }
 
-    private CloudSocketThread getClientByNickname(String nickname) {
+    public CloudSocketThread getClientByNickname(String nickname) {
         final  int cnt = clients.size();
         for (int i = 0; i < cnt; i++) {
             CloudSocketThread client = (CloudSocketThread) clients.get(i);
@@ -183,45 +183,10 @@ public class CloudServer implements ServerSocketThreadListener, SocketThreadList
             String msg = objectData.toString();
             String tokens[] = msg.split(Request.DELIMITER);
             if (tokens[0].equals(Request.AUTH_REQUEST)) {
-                String login = tokens[1];
-                String password = tokens[2];
-                String nickname = authService.getRepository(login, password);
-                if (nickname == null) {
-                    newClient.authError();
-                    return;
-                }
-
-                CloudSocketThread oldClient = getClientByNickname(nickname);
-                newClient.authAccept(nickname);
-                if (oldClient == null) {
-                    System.out.println(("Server " + newClient.getLogin() + " connected."));
-                    userMap.put(newClient, new User(login, dataBase.getName(), dataBase.getUserRepository()));
-                } else {
-                    oldClient.reconnected();
-                }
+                authService.authorize(tokens[1], tokens[2], this, newClient);
             }
             if (tokens[0].equals(Request.REGISTER)) {
-                if (dataBase.checkAviablity(tokens[1])) {
-                    dataBase.registerUser(tokens[1], tokens[2], tokens[3]);
-                    String login = tokens[1];
-                    String password = tokens[2];
-                    String nickname = authService.getRepository(login, password);
-                    if (nickname == null) {
-                        newClient.authError();
-                        return;
-                    }
-
-                    CloudSocketThread oldClient = getClientByNickname(nickname);
-                    newClient.authAccept(nickname);
-                    if (oldClient == null) {
-                        System.out.println(("Server " + newClient.getLogin() + " connected."));
-                        userMap.put(newClient, new User(login, dataBase.getName(), dataBase.getUserRepository()));
-                    } else {
-                        oldClient.reconnected();
-                    }
-                } else {
-                    newClient.sendMsg(Request.getRegistrationError(tokens[1]));
-                }
+                authService.register(tokens[1], tokens[2], tokens[3], this, newClient);
             }
         }
     }
@@ -230,5 +195,9 @@ public class CloudServer implements ServerSocketThreadListener, SocketThreadList
     @Override
     public synchronized void onExceptionSocketThread(SocketThread socketThread, Socket socket, Exception e) {
         putLog("Exception: " + e.getClass().getName() + ": " + e.getMessage());
+    }
+
+    public ConcurrentHashMap<CloudSocketThread, User> getUserMap() {
+        return userMap;
     }
 }

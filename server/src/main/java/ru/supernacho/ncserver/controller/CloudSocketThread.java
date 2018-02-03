@@ -25,29 +25,29 @@ public class CloudSocketThread extends SocketThread {
         return isReconnected;
     }
 
-    String getLogin() {
+    public String getLogin() {
         return login;
     }
 
-    void authAccept(String login) {
+    public void authAccept(String login) {
         this.isAuthorized = true;
         this.login = login;
         sendMsg(Request.getAuthAccept(login));
         System.out.println(login);
     }
 
-    void authError() {
+    public void authError() {
         sendMsg(Request.getAuthError());
         close();
     }
 
-    void reconnected() {
+    public void reconnected() {
         isReconnected = true;
         sendMsg(Request.getReconnect());
         close();
     }
 
-    void messageFormatError(String msg) {
+    public void messageFormatError(String msg) {
         sendMsg(Request.getMsgFormatError(msg));
         close();
     }

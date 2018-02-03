@@ -28,8 +28,7 @@ public class ServerMain implements CloudServerListener, Runnable {
     @Override
     public void run() {
         Scanner scanner = new Scanner(System.in);
-        boolean exit = false;
-        while (!exit) {
+        while (true) {
             String command = scanner.next();
             switch (command) {
                 case START:
@@ -42,7 +41,6 @@ public class ServerMain implements CloudServerListener, Runnable {
                     cloudServer.dropAllClients();
                     break;
                 case QUIT:
-                    exit = true;
                     System.exit(0);
                     break;
                 default:
