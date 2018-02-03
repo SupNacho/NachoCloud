@@ -7,11 +7,13 @@ import javafx.scene.control.PasswordField;
 import javafx.scene.control.TextField;
 import javafx.stage.Stage;
 import ru.supernacho.ncc.ClientMain;
+import ru.supernacho.ncc.controller.ConnectionController;
 
 public class RegistrationDialogController {
     private ClientMain clientMain;
     private Stage dialogStage;
     private boolean okClicked = false;
+    private ConnectionController connection;
 
     @FXML
     private TextField textFieldNewLogin;
@@ -36,6 +38,7 @@ public class RegistrationDialogController {
 
     public void setClientMain(ClientMain clientMain){
         this.clientMain = clientMain;
+        connection = clientMain.getConnection();
     }
 
     @FXML
@@ -57,7 +60,7 @@ public class RegistrationDialogController {
                     passFieldNewPassword.getText(), textFiledName.getText()));
             labelRegisterStatus.setText("Registration data send to server, waiting response...");
             okClicked = true;
-            clientMain.registration(textFieldNewLogin.getText(), passFieldNewPassword.getText(), textFiledName.getText(), true);
+            connection.registration(textFieldNewLogin.getText(), passFieldNewPassword.getText(), textFiledName.getText(), true);
             dialogStage.close();
         }
 

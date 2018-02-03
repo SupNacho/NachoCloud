@@ -12,41 +12,23 @@ import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.BorderPane;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
+import ru.supernacho.ncc.controller.ConnectionController;
 import ru.supernacho.ncc.viewController.*;
 import ru.supernacho.nclib.*;
-import ru.supernacho.ncnet.SocketThread;
-import ru.supernacho.ncnet.SocketThreadListener;
 import ru.supernacho.ncc.model.RemoteStorage;
 
 import java.io.File;
 import java.io.IOException;
-import java.net.Socket;
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
-import java.util.Arrays;
-import java.util.Date;
 import java.util.List;
 
-public class ClientMain extends Application implements SocketThreadListener {
+public class ClientMain extends Application {
 
-    private static final int PORT = 8189;
-    private static final String HOST = "localhost";
     private Stage primaryStage;
     private BorderPane rootLayout;
-    private SocketThread socketThread;
-    private String login;
-    private String password;
-    private String newLogin;
-    private String newPassword;
-    private String name;
-    private User user;
-    private List<File> fileList;
-    private StringBuilder errMessages = new StringBuilder();
-    private boolean isRegistration;
     private ClientFileInterface fileProcessor = new FileProcessor();
-    private DateFormat timeStamp = new SimpleDateFormat("dd.MM.yyyy HH:mm:ss");
     private ObservableList<RemoteStorage> remoteStorage = FXCollections.observableArrayList();
     private String saveFileLocation;
+    private ConnectionController connection = new ConnectionController(this);
 
     public ClientMain() {
     }
@@ -56,7 +38,7 @@ public class ClientMain extends Application implements SocketThreadListener {
         this.primaryStage = primaryStage;
         this.primaryStage.setTitle("NachoCloud");
         primaryStage.setOnCloseRequest(e -> {
-            disconnect();
+            connection.disconnect();
             Platform.exit();
         });
         initRootLayout();
@@ -81,7 +63,7 @@ public class ClientMain extends Application implements SocketThreadListener {
         }
     }
 
-    private void showLoginPage(String message) {
+    public void showLoginPage(String message) {
         try {
             FXMLLoader loader = new FXMLLoader();
             loader.setLocation(ClientMain.class.getResource("/loginPage.fxml"));
@@ -98,7 +80,7 @@ public class ClientMain extends Application implements SocketThreadListener {
         }
     }
 
-    private void showBrowsePage() {
+    public void showBrowsePage() {
         try {
             FXMLLoader loader = new FXMLLoader();
             loader.setLocation(ClientMain.class.getResource("/browseLayout.fxml"));
@@ -121,7 +103,7 @@ public class ClientMain extends Application implements SocketThreadListener {
                     for (File file: dragboard.getFiles()){
                         FileModel fileModel = fileProcessor.uploadFile(file);
                         if (checkFileOverwrite(fileModel)) {
-                            sendRequest(fileModel);
+                            connection.sendRequest(fileModel);
                             System.out.println("File: " + file.getName() + " File size: " + file.length() + "File path: " + file.getAbsolutePath());
                         }
                     }
@@ -138,14 +120,13 @@ public class ClientMain extends Application implements SocketThreadListener {
     }
 
     public boolean checkFileOverwrite(FileModel fileModel){
-        System.out.println("chkOwerwrite");
+        List<File> fileList = connection.getFileList();
         for (File file : fileList) {
-            System.out.println("overwrite 2");
             if (fileModel.getName().equals(file.getName())){
                 String newName = showOverwriteDialog(fileModel.getName());
                 if (newName.equals("drop")) return false;
                 fileModel.setFile(new File(newName));
-                sendRequest(fileModel);
+                connection.sendRequest(fileModel);
                 System.out.println("File: " + file.getName() + " File size: " + file.length() + "File path: " + file.getAbsolutePath());
                 return false;
             }
@@ -213,135 +194,18 @@ public class ClientMain extends Application implements SocketThreadListener {
         this.saveFileLocation = saveFileLocation;
     }
 
+    public String getSaveFileLocation() {
+        return saveFileLocation;
+    }
+
+
+
     public Stage getPrimaryStage() {
         return primaryStage;
     }
 
-    public void connect(String login, String password) {
-        try {
-            this.login = login;
-            this.password = password;
-            Socket socket = new Socket(HOST, PORT);
-            socketThread = new SocketThread(this, "socketThread", socket);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
-
-    public void registration(String newLogin, String newPassword, String name, boolean isRegistration) {
-        try {
-            this.isRegistration = isRegistration;
-            this.newLogin = newLogin;
-            this.newPassword = newPassword;
-            this.name = name;
-            Socket socket = new Socket(HOST, PORT);
-            socketThread = new SocketThread(this, "socketThread", socket);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
-
-    private void disconnect() {
-        if (socketThread != null) socketThread.close();
-    }
-
-    @Override
-    public void onStartSocketThread(SocketThread socketThread) {
-    }
-
-    @Override
-    public void onStopSocketThread(SocketThread socketThread) {
-        Platform.runLater(() -> {
-            errMessages.append("Connection closed");
-            showLoginPage(errMessages.toString());
-            errMessages.setLength(0);
-        });
-    }
-
-    public void onReadySocketThread(SocketThread socketThread, Socket socket) {
-        Platform.runLater(() -> {
-            if (isRegistration) {
-                socketThread.sendMsg(Request.getRegistrationRequest(newLogin, newPassword, name));
-                isRegistration = false;
-            } else {
-                String authRequest = Request.getAuthRequest(login, password);
-                socketThread.sendMsg(authRequest);
-            }
-        });
-    }
-
-    public void sendRequest(Object request) {
-        System.out.println("Client Request: " + request.toString());
-        socketThread.sendMsg(request);
-    }
-
-    @Override
-    public void onReceiveData(SocketThread socketThread, Socket socket, Object objectData) {
-        Platform.runLater(() -> {
-            if (objectData instanceof FileModel){
-                FileModel fileModel = (FileModel) objectData;
-                fileProcessor.saveFile(saveFileLocation, fileModel);
-                System.out.println("Received file " + fileModel.getName());
-            }
-
-            if (objectData instanceof List){
-                remoteStorage.clear();
-                fileList = (List<File>) objectData;
-                user.setFileList(fileList);
-                for (File file : fileList) {
-                    System.out.println("File: " + file.getName());
-                }
-                System.out.println("Files qantity: " + fileList.size());
-                for (File file : fileList) {
-                    remoteStorage.add(new RemoteStorage(file.getName(), file.length(), timeStamp.format(new Date(file.lastModified()))));
-                }
-            }
-            if (objectData instanceof User){
-                user = (User) objectData;
-                sendRequest(Request.FILE_LIST);
-            }
-
-            if (objectData instanceof String) {
-                String value = objectData.toString();
-                String tokens[] = value.split(Request.DELIMITER);
-                switch (tokens[0]) {
-                    case Request.REGISTER_ERROR:
-                        String err = "Reg err: " + tokens[1];
-                        System.out.println(err);
-                        errMessages.append(err);
-                        break;
-                    case Request.FILE_LIST:
-                        int msgHeaderCut = Request.FILE_LIST.length() + Request.DELIMITER.length();
-                        String files[] = value.substring(msgHeaderCut).split(Request.DELIMITER);
-                        Arrays.sort(files);
-                        break;
-                    case Request.AUTH_ACCEPT:
-                        showBrowsePage();
-                        sendRequest(Request.GET_USER_DATA);
-                        break;
-                    case Request.AUTH_ERROR:
-                        String msg = "Ошибка авторизации ";
-                        System.out.println(msg);
-                        errMessages.append(msg);
-                        break;
-                    case Request.MSG_FORMAT_ERROR:
-                        String msg2 = "Ошибка формата сообщения - > " + tokens[0] + tokens[1] + "\n";
-                        errMessages.append(msg2);
-                        break;
-                    case Request.RECONNECT:
-                        String msg3 = "Переподключение с другого устройства] \n";
-                        errMessages.append(msg3);
-                        break;
-                    default:
-                        throw new RuntimeException("Неизвестный заголовок сообщения: " + value);
-                }
-            }
-        });
-    }
-
-    @Override
-    public void onExceptionSocketThread(SocketThread socketThread, Socket socket, Exception e) {
-        Platform.runLater(e::printStackTrace);
+    public ConnectionController getConnection() {
+        return connection;
     }
 
     public static void main(String[] args) {

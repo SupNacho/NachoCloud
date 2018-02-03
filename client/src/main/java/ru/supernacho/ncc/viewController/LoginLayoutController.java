@@ -6,12 +6,15 @@ import javafx.scene.control.Label;
 import javafx.scene.control.PasswordField;
 import javafx.scene.control.TextField;
 import ru.supernacho.ncc.ClientMain;
+import ru.supernacho.ncc.controller.ConnectionController;
 
 public class LoginLayoutController {
     private ClientMain clientMain;
+    private ConnectionController connection;
 
     public void setClientMain(ClientMain clientMain){
         this.clientMain = clientMain;
+        connection = clientMain.getConnection();
     }
 
     @FXML
@@ -31,7 +34,7 @@ public class LoginLayoutController {
 
     @FXML
     private void handleSignIn(){
-        clientMain.connect(loginField.getText(), passwordField.getText());
+        connection.connect(loginField.getText(), passwordField.getText());
     }
 
     @FXML

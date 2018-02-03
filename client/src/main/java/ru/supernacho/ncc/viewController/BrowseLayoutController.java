@@ -5,6 +5,7 @@ import javafx.scene.control.*;
 import javafx.stage.DirectoryChooser;
 import javafx.stage.FileChooser;
 import ru.supernacho.ncc.ClientMain;
+import ru.supernacho.ncc.controller.ConnectionController;
 import ru.supernacho.nclib.ClientFileInterface;
 import ru.supernacho.nclib.FileModel;
 import ru.supernacho.nclib.Request;
@@ -37,6 +38,7 @@ public class BrowseLayoutController {
     private Button buttonRefresh;
 
     private ClientMain clientMain;
+    private ConnectionController connection;
 
     public BrowseLayoutController() {
 
@@ -60,6 +62,7 @@ public class BrowseLayoutController {
 
     public void setClientMain(ClientMain clientMain) {
         this.clientMain = clientMain;
+        connection = clientMain.getConnection();
         remoteStorageTable.setItems(clientMain.getRemoteStorage());
     }
 
@@ -72,7 +75,7 @@ public class BrowseLayoutController {
             System.out.println("Добавляем файл: " + file.getName() + " at path " + file.getCanonicalPath());
             ClientFileInterface fileProcessor = clientMain.getFileProcessor();
             FileModel fileModel = fileProcessor.uploadFile(file);
-            if (clientMain.checkFileOverwrite(fileModel)) clientMain.sendRequest(fileModel);
+            if (clientMain.checkFileOverwrite(fileModel)) connection.sendRequest(fileModel);
         }
 
     }
@@ -85,7 +88,7 @@ public class BrowseLayoutController {
         if (selectedIndex >= 0) {
             String fileName = remoteStorageTable.getItems().get(selectedIndex).getFileName();
             System.out.println("Скачиваем файл: " + fileName);
-            clientMain.sendRequest(Request.getFileDownload(fileName));
+            connection.sendRequest(Request.getFileDownload(fileName));
         } else {
             buttonDownLoad.setDisable(true);
         }
@@ -112,7 +115,7 @@ public class BrowseLayoutController {
         System.out.println("Delete selected index: " + selectedIndex);
         if (selectedIndex >= 0) {
             System.out.println("Удаляем файл: " + remoteStorageTable.getItems().get(selectedIndex).getFileName());
-            clientMain.sendRequest(Request.getFileDelete(remoteStorageTable.getItems().get(selectedIndex).getFileName()));
+            connection.sendRequest(Request.getFileDelete(remoteStorageTable.getItems().get(selectedIndex).getFileName()));
             remoteStorageTable.getItems().remove(selectedIndex);
         } else if (selectedIndex == -1) {
             buttonDel.setDisable(true);
@@ -128,7 +131,7 @@ public class BrowseLayoutController {
 
     @FXML
     private void handleRefreshFiles() {
-        clientMain.sendRequest(Request.FILE_LIST);
+        connection.sendRequest(Request.FILE_LIST);
         System.out.println("Обновляем");
     }
 
