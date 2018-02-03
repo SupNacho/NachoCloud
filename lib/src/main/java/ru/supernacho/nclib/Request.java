@@ -1,20 +1,6 @@
 package ru.supernacho.nclib;
 
-public class MessageHeaders {
-
-    public static final String DELIMITER =          ";";
-    public static final String REGISTER =           "/register";
-    public static final String REGISTER_ERROR =     "/register_error";
-    public static final String AUTH_REQUEST =       "/auth_request";
-    public static final String AUTH_ACCEPT =        "/auth_accept";
-    public static final String AUTH_ERROR =         "/auth_error";
-    public static final String FILE_LIST =          "/file_list";
-    public static final String GET_USER_DATA =      "/get_user_data";
-    public static final String FILE_UPLOAD =        "/file_upload";
-    public static final String GET_FILE =           "/get_file";
-    public static final String FILE_DELETE =        "/file_delete";
-    public static final String RECONNECT =          "/reconnect";
-    public static final String MSG_FORMAT_ERROR =   "/msg_format_error";
+public class Request implements RequestHeaders{
 
     public static String getRegistrationError(String newLogin){
         return REGISTER_ERROR + DELIMITER + newLogin + " is already taken, pls choose another...";

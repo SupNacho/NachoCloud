@@ -150,25 +150,25 @@ public class CloudServer implements ServerSocketThreadListener, SocketThreadList
         }
         if (objectData instanceof String) {
             String msg = objectData.toString();
-            String[] msgArr = msg.split(MessageHeaders.DELIMITER);
+            String[] msgArr = msg.split(Request.DELIMITER);
             switch (msgArr[0]) {
-                case MessageHeaders.FILE_UPLOAD:
+                case Request.FILE_UPLOAD:
                     System.out.println("UPLOADING FILE");
                     break;
-                case MessageHeaders.GET_FILE:
+                case Request.GET_FILE:
                     System.out.println("Downloading file " + msgArr[1]);
                     client.sendMsg(serverFilesProcessor.getFile(msgArr[1]));
                     break;
-                case MessageHeaders.FILE_LIST:
+                case Request.FILE_LIST:
                     System.out.println("Sending fileList from: " + dataBase.getUserRepository());
                     client.sendMsg(serverFilesProcessor.getFileList());
                     break;
-                case MessageHeaders.FILE_DELETE:
+                case Request.FILE_DELETE:
                     System.out.println("Perform delete file: " + msgArr[1]);
                     serverFilesProcessor.deleteFile(msgArr[1]);
                     client.sendMsg(serverFilesProcessor.getFileList());
                     break;
-                case MessageHeaders.GET_USER_DATA:
+                case Request.GET_USER_DATA:
                     serverFilesProcessor.getFileList();
                     client.sendMsg(user);
                     break;
@@ -181,8 +181,8 @@ public class CloudServer implements ServerSocketThreadListener, SocketThreadList
     private void handleNonAuthorizeClient(CloudSocketThread newClient, Object objectData) {
         if (objectData instanceof String) {
             String msg = objectData.toString();
-            String tokens[] = msg.split(MessageHeaders.DELIMITER);
-            if (tokens[0].equals(MessageHeaders.AUTH_REQUEST)) {
+            String tokens[] = msg.split(Request.DELIMITER);
+            if (tokens[0].equals(Request.AUTH_REQUEST)) {
                 String login = tokens[1];
                 String password = tokens[2];
                 String nickname = authService.getRepository(login, password);
@@ -200,7 +200,7 @@ public class CloudServer implements ServerSocketThreadListener, SocketThreadList
                     oldClient.reconnected();
                 }
             }
-            if (tokens[0].equals(MessageHeaders.REGISTER)) {
+            if (tokens[0].equals(Request.REGISTER)) {
                 if (dataBase.checkAviablity(tokens[1])) {
                     dataBase.registerUser(tokens[1], tokens[2], tokens[3]);
                     String login = tokens[1];
@@ -220,7 +220,7 @@ public class CloudServer implements ServerSocketThreadListener, SocketThreadList
                         oldClient.reconnected();
                     }
                 } else {
-                    newClient.sendMsg(MessageHeaders.getRegistrationError(tokens[1]));
+                    newClient.sendMsg(Request.getRegistrationError(tokens[1]));
                 }
             }
         }

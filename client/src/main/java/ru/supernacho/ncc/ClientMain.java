@@ -261,10 +261,10 @@ public class ClientMain extends Application implements SocketThreadListener {
     public void onReadySocketThread(SocketThread socketThread, Socket socket) {
         Platform.runLater(() -> {
             if (isRegistration) {
-                socketThread.sendMsg(MessageHeaders.getRegistrationRequest(newLogin, newPassword, name));
+                socketThread.sendMsg(Request.getRegistrationRequest(newLogin, newPassword, name));
                 isRegistration = false;
             } else {
-                String authRequest = MessageHeaders.getAuthRequest(login, password);
+                String authRequest = Request.getAuthRequest(login, password);
                 socketThread.sendMsg(authRequest);
             }
         });
@@ -298,37 +298,37 @@ public class ClientMain extends Application implements SocketThreadListener {
             }
             if (objectData instanceof User){
                 user = (User) objectData;
-                sendRequest(MessageHeaders.FILE_LIST);
+                sendRequest(Request.FILE_LIST);
             }
 
             if (objectData instanceof String) {
                 String value = objectData.toString();
-                String tokens[] = value.split(MessageHeaders.DELIMITER);
+                String tokens[] = value.split(Request.DELIMITER);
                 switch (tokens[0]) {
-                    case MessageHeaders.REGISTER_ERROR:
+                    case Request.REGISTER_ERROR:
                         String err = "Reg err: " + tokens[1];
                         System.out.println(err);
                         errMessages.append(err);
                         break;
-                    case MessageHeaders.FILE_LIST:
-                        int msgHeaderCut = MessageHeaders.FILE_LIST.length() + MessageHeaders.DELIMITER.length();
-                        String files[] = value.substring(msgHeaderCut).split(MessageHeaders.DELIMITER);
+                    case Request.FILE_LIST:
+                        int msgHeaderCut = Request.FILE_LIST.length() + Request.DELIMITER.length();
+                        String files[] = value.substring(msgHeaderCut).split(Request.DELIMITER);
                         Arrays.sort(files);
                         break;
-                    case MessageHeaders.AUTH_ACCEPT:
+                    case Request.AUTH_ACCEPT:
                         showBrowsePage();
-                        sendRequest(MessageHeaders.GET_USER_DATA);
+                        sendRequest(Request.GET_USER_DATA);
                         break;
-                    case MessageHeaders.AUTH_ERROR:
+                    case Request.AUTH_ERROR:
                         String msg = "Ошибка авторизации ";
                         System.out.println(msg);
                         errMessages.append(msg);
                         break;
-                    case MessageHeaders.MSG_FORMAT_ERROR:
+                    case Request.MSG_FORMAT_ERROR:
                         String msg2 = "Ошибка формата сообщения - > " + tokens[0] + tokens[1] + "\n";
                         errMessages.append(msg2);
                         break;
-                    case MessageHeaders.RECONNECT:
+                    case Request.RECONNECT:
                         String msg3 = "Переподключение с другого устройства] \n";
                         errMessages.append(msg3);
                         break;

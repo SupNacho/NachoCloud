@@ -1,6 +1,6 @@
 package ru.supernacho.ncserver.controller;
 
-import ru.supernacho.nclib.MessageHeaders;
+import ru.supernacho.nclib.Request;
 import ru.supernacho.ncnet.SocketThread;
 import ru.supernacho.ncnet.SocketThreadListener;
 
@@ -32,23 +32,23 @@ public class CloudSocketThread extends SocketThread {
     void authAccept(String login) {
         this.isAuthorized = true;
         this.login = login;
-        sendMsg(MessageHeaders.getAuthAccept(login));
+        sendMsg(Request.getAuthAccept(login));
         System.out.println(login);
     }
 
     void authError() {
-        sendMsg(MessageHeaders.getAuthError());
+        sendMsg(Request.getAuthError());
         close();
     }
 
     void reconnected() {
         isReconnected = true;
-        sendMsg(MessageHeaders.getReconnect());
+        sendMsg(Request.getReconnect());
         close();
     }
 
     void messageFormatError(String msg) {
-        sendMsg(MessageHeaders.getMsgFormatError(msg));
+        sendMsg(Request.getMsgFormatError(msg));
         close();
     }
 }
